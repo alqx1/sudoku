@@ -1,3 +1,6 @@
+#ifndef SOLVER
+#define SOLVER
+
 #include "stdbool.h"
 
 int *read_file(char *path);
@@ -8,3 +11,5 @@ bool in_box(int *sudoku, const int x, const int y, const int num);
 bool is_safe(int *sudoku, const int x, const int y, const int num);
 bool find_empty_cell(int *sudoku, int *list);
 bool solve(int *sudoku);
+
+#endif // SOLVER
