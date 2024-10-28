@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
     selected.x = 4;
     selected.y = 4;
 
-    int *sudoku = generate_sudoku(60);
+    struct cell *sudoku = generate_sudoku(60);
 
     InitWindow(config.window_size, config.window_size, "Sudoku");
     SetTargetFPS(60);
@@ -30,4 +30,6 @@ int main(int argc, char **argv) {
     }
 
     CloseWindow();
+
+    free(sudoku);
 }
