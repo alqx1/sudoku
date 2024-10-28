@@ -2,6 +2,12 @@
 #include <raylib.h>
 #include <stdio.h>
 
+void run(short window_size, struct pos *selected, int *sudoku) {
+    move_cursor(selected);
+    place_number(*selected, sudoku);
+    draw_board(window_size, *selected, sudoku);
+}
+
 void draw_board(short window_size, struct pos selected, int const *sudoku) {
     draw_selected_box(selected, window_size);
     draw_numbers(sudoku, window_size);
@@ -26,7 +32,8 @@ void draw_lines(short window_size) {
 void draw_selected_box(struct pos selected, short window_size) {
     float padding = window_size / 9.f;
     DrawRectangle(
-        selected.x * padding, selected.y * padding, padding, padding, SKYBLUE);
+        selected.x * padding, selected.y * padding, padding + 1, padding + 1,
+        SKYBLUE);
 }
 
 void draw_numbers(int const *sudoku, short window_size) {
@@ -34,7 +41,8 @@ void draw_numbers(int const *sudoku, short window_size) {
     float padding = window_size / 9.f;
     for (int y = 0; y < 9; y++) {
         for (int x = 0; x < 9; x++) {
-            if (*(sudoku + 9 * y + x) == 0) continue;
+            if (*(sudoku + 9 * y + x) == 0)
+                continue;
             sprintf(buf, "%d", *(sudoku + 9 * y + x));
             short width = MeasureText(buf, padding * 0.8);
             Vector2 pos = {
@@ -44,5 +52,23 @@ void draw_numbers(int const *sudoku, short window_size) {
                 TextFormat("%d", *(sudoku + 9 * y + x)), pos.x, pos.y,
                 padding * 0.8, BLACK);
         }
+    }
+}
+
+void move_cursor(struct pos *selected) {
+    if (IsKeyPressed(KEY_J))
+        selected->x--;
+    if (IsKeyPressed(KEY_L))
+        selected->x++;
+    if (IsKeyPressed(KEY_I))
+        selected->y--;
+    if (IsKeyPressed(KEY_K))
+        selected->y++;
+}
+
+void place_number(const struct pos selected, int *sudoku) {
+    int i = GetKeyPressed();
+    if (i >= KEY_ZERO && i <= KEY_NINE) {
+        *(sudoku + 9 * selected.y + selected.x) = i - KEY_ZERO;
     }
 }

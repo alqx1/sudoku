@@ -13,8 +13,8 @@ int main(int argc, char **argv) {
     srand(time(NULL));
     config = read_config("./config.txt");
 
-    selected.x = 2;
-    selected.y = 3;
+    selected.x = 4;
+    selected.y = 4;
 
     int *sudoku = generate_sudoku(60);
 
@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        draw_board(config.window_size, selected, sudoku);
+        run(config.window_size, &selected, sudoku);
 
         EndDrawing();
     }
