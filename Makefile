@@ -403,3 +403,17 @@ ifeq ($(PLATFORM),PLATFORM_WEB)
 endif
 	@echo Cleaning done
 
+run:
+ifeq ($(PLATFORM),PLATFORM_DESKTOP)
+    ifeq ($(PLATFORM_OS),WINDOWS)
+
+    endif
+    ifeq ($(PLATFORM_OS),LINUX)
+		./sudoku
+    endif
+    ifeq ($(PLATFORM_OS),OSX)
+
+    endif
+endif
+	
+

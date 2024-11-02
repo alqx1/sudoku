@@ -1,19 +1,15 @@
 #include "sudoku_functions.h"
+#include "cell_functions.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 // solving sudokus
-struct cell *read_file(char *path) {
+void read_file(uint16_t sudoku[9][9], char *path) {
     FILE *fin = fopen(path, "r");
     if (fin == NULL) {
         printf("Error: Can't open file\n");
+        free(fin);
         exit(2);
-    }
-
-    struct cell *sudoku = malloc(sizeof(struct cell) * 81);
-    if (sudoku == NULL) {
-        printf("Error: Couldn't make board\n");
-        exit(3);
     }
 
     int count = 0;
@@ -23,50 +19,55 @@ struct cell *read_file(char *path) {
     while ((read = getline(&line, &len, fin)) != -1 && count < 9) {
         if (read != 10) {
             printf("Error: One line contains too many characters\n");
+            free(fin);
+            free(line);
             exit(5);
         }
 
         for (size_t i = 0; i < 9; i++) {
             if (line[i] - '0' > 9 || line[i] - '0' < 0) {
                 printf("Error: Sudoku contains wrong numbers\n");
+                free(fin);
+                free(line);
                 exit(4);
             }
-            (sudoku + count * 9 + i)->value = line[i] - '0';
-            (sudoku + count * 9 + i)->changable = false;
+
+            sudoku[count][i] = 0;
+            set_value(&sudoku[count][i], line[i] - '0');
+            set_changable(&sudoku[count][i], false);
         }
         count++;
     }
 
     fclose(fin);
     free(line);
-    return sudoku;
 }
 
-bool in_row(struct cell *sudoku, const int row, const int num) {
+bool in_row(uint16_t sudoku[9][9], const int row, const int num) {
     for (size_t i = 0; i < 9; i++) {
-        if ((sudoku + row * 9 + i)->value == num) {
+        if (get_value(sudoku[row][i]) == num) {
             return true;
         }
     }
     return false;
 }
 
-bool in_col(struct cell *sudoku, const int col, const int num) {
+bool in_col(uint16_t sudoku[9][9], const int col, const int num) {
     for (size_t i = 0; i < 9; i++) {
-        if ((sudoku + i * 9 + col)->value == num) {
+        if (get_value(sudoku[i][col]) == num) {
             return true;
         }
     }
     return false;
 }
 
-bool in_box(struct cell *sudoku, const int x, const int y, const int num) {
-    int box_x = x - (x % 3);
-    int box_y = y - (y % 3);
+bool in_box(uint16_t sudoku[9][9], const struct pos position, const int num) {
+    int box_x = position.x - (position.x % 3);
+    int box_y = position.y - (position.y % 3);
 
-    for (int i = 0; i < 3; i++) {
-        for (int j = 0; j < 3; j++) {
-            if ((sudoku + (box_y + j) * 9 + box_x + i)->value == num) {
+    for (size_t i = 0; i < 3; i++) {
+        for (size_t j = 0; j < 3; j++) {
+            if (get_value(sudoku[box_y + i][box_x + j]) == num) {
                 return true;
             }
         }
@@ -74,12 +75,12 @@ bool in_box(struct cell *sudoku, const int x, const int y, const int num) {
     return false;
 }
 
-bool find_empty_cell(struct cell *sudoku, int *list) {
-    for (int i = 0; i < 9; i++) {
-        for (int j = 0; j < 9; j++) {
-            if ((sudoku + (i * 9) + j)->value == 0) {
-                list[0] = j;
-                list[1] = i;
+bool find_empty_cell(uint16_t sudoku[9][9], struct pos *position) {
+    for (size_t i = 0; i < 9; i++) {
+        for (size_t j = 0; j < 9; j++) {
+            if (get_value(sudoku[i][j]) == 0) {
+                position->y = i;
+                position->x = j;
                 return true;
             }
         }
@@ -87,56 +88,63 @@ bool find_empty_cell(struct cell *sudoku, int *list) {
     return false;
 }
 
-bool is_safe(struct cell *sudoku, const int x, const int y, const int num) {
+bool is_safe(uint16_t sudoku[9][9], const struct pos position, const int num) {
     return (
-        !in_row(sudoku, y, num) && !in_col(sudoku, x, num) &&
-        !in_box(sudoku, x, y, num));
+        !in_row(sudoku, position.y, num) && !in_col(sudoku, position.x, num) &&
+        !in_box(sudoku, position, num));
 }
 
-bool solve(struct cell *sudoku) {
-    int list[2];
+bool solve(uint16_t sudoku[9][9]) {
+    struct pos empty_cell = {0, 0};
 
-    if (!find_empty_cell(sudoku, list)) {
+    if (!find_empty_cell(sudoku, &empty_cell)) {
         return true;
     }
 
     for (int num = 1; num < 10; num++) {
-        if (is_safe(sudoku, list[0], list[1], num)) {
-            (sudoku + (list[1] * 9) + list[0])->value = num;
+        if (is_safe(sudoku, empty_cell, num)) {
+            set_value(&sudoku[empty_cell.y][empty_cell.x], num);
 
             if (solve(sudoku)) {
                 return true;
             }
 
-            (sudoku + (list[1] * 9) + list[0])->value = 0;
+            set_value(&sudoku[empty_cell.y][empty_cell.x], 0);
         }
     }
     return false;
 }
 
-void clear(struct cell *sudoku) {
-    for (int i = 0; i < 81; i++) {
-        if ((sudoku + i)->changable)
-            (sudoku + i)->value = 0;
+void clear(uint16_t sudoku[9][9]) {
+    for (size_t i = 0; i < 9; i++) {
+        for (size_t j = 0; j < 9; j++) {
+            if (get_changable(sudoku[i][j])) {
+                set_value(&sudoku[i][j], 0);
+            }
+        }
     }
 }
 
 // generate sudoku
-struct cell *generate_sudoku(int removed_digits) {
-    struct cell *sudoku = generate_diagonal_matrices();
+void generate_sudoku(uint16_t sudoku[9][9], int removed_digits) {
+    generate_diagonal_matrices(sudoku);
     solve(sudoku);
-    remove_n_digits(sudoku, removed_digits);
-    return sudoku;
+
+    uint16_t copy[9][9];
+    copy_sudoku(sudoku, copy);
+    while (!remove_n_digits(sudoku, removed_digits)) {
+        copy_sudoku(copy, sudoku);
+    }
 }
 
-struct cell *generate_diagonal_matrices() {
-    struct cell *sudoku = malloc(sizeof(struct cell) * 81);
-    for (int i = 0; i < 81; i++) {
-        (sudoku + i)->value = 0;
-        (sudoku + i)->changable = false;
+void generate_diagonal_matrices(uint16_t sudoku[9][9]) {
+    for (size_t i = 0; i < 9; i++) {
+        for (size_t j = 0; j < 9; j++) {
+            sudoku[i][j] = 0;
+        }
     }
 
-    int nums[] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+    int nums[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
     shuffle_nums(nums);
     add_nums_to_box(sudoku, 0, 0, nums);
 
@@ -145,35 +153,51 @@ struct cell *generate_diagonal_matrices() {
 
     shuffle_nums(nums);
     add_nums_to_box(sudoku, 6, 6, nums);
-
-    return sudoku;
 }
 
-void shuffle_nums(int *nums) {
-    for (int i = 8; i >= 0; i--) {
+void shuffle_nums(int nums[9]) {
+    for (ssize_t i = 8; i >= 0; i--) {
         short random = rand() % (i + 1);
         swap(nums + random, nums + i);
     }
 }
 
-void add_nums_to_box(struct cell *sudoku, int box_x, int box_y, int *nums) {
-    for (int y = 0; y < 3; y++) {
-        for (int x = 0; x < 3; x++) {
-            (sudoku + (y + box_y) * 9 + x + box_x)->value = *(nums + y * 3 + x);
+void add_nums_to_box(uint16_t sudoku[9][9], int box_x, int box_y, int nums[9]) {
+    for (size_t y = 0; y < 3; y++) {
+        for (size_t x = 0; x < 3; x++) {
+            set_value(&sudoku[box_y + y][box_x + x], nums[y * 3 + x]);
         }
     }
 }
 
-void remove_n_digits(struct cell *sudoku, int n) {
+bool remove_n_digits(uint16_t sudoku[9][9], int n) {
+    int temp;
+    int solutions;
+    int iterations = 50000;
     while (n != 0) {
-        short x = rand() % (9);
-        short y = rand() % (9);
-        if ((sudoku + y * 9 + x)->value != 0) {
-            n--;
-            (sudoku + y * 9 + x)->value = 0;
-            (sudoku + y * 9 + x)->changable = true;
+        if (iterations == 0)
+            return false;
+
+        short x = rand() % 9;
+        short y = rand() % 9;
+
+        if ((temp = get_value(sudoku[y][x])) == 0) {
+            continue;
         }
+
+        set_value(&sudoku[y][x], 0);
+
+        solutions = 0;
+        number_of_solutions(sudoku, &solutions);
+        if (solutions != 1) {
+            set_value(&sudoku[y][x], temp);
+            continue;
+        }
+
+        set_changable(&sudoku[y][x], true);
+        n--;
     }
+    return true;
 }
 
 // helper functions
@@ -183,11 +207,39 @@ void swap(int *x, int *y) {
     *y = temp;
 }
 
-void print_sudoku(struct cell *sudoku) {
-    for (int i = 0; i < 9; i++) {
-        for (int j = 0; j < 9; j++) {
-            printf("%i ", (sudoku + j + 9 * i)->value);
+void print_sudoku(uint16_t sudoku[9][9]) {
+    for (size_t i = 0; i < 9; i++) {
+        for (size_t j = 0; j < 9; j++) {
+            printf("%i ", get_value(sudoku[i][j]));
         }
         printf("\n");
     }
+}
+
+void copy_sudoku(uint16_t const original_sudoku[9][9], uint16_t copy[9][9]) {
+    for (size_t i = 0; i < 9; i++) {
+        for (size_t j = 0; j < 9; j++) {
+            copy[i][j] = original_sudoku[i][j];
+        }
+    }
+}
+
+bool number_of_solutions(uint16_t sudoku[9][9], int *solutions) {
+    struct pos empty_cell = {0, 0};
+
+    if (!find_empty_cell(sudoku, &empty_cell)) {
+        *(solutions) = *(solutions) + 1;
+        return false;
+    }
+
+    for (int num = 1; num < 10; num++) {
+        if (is_safe(sudoku, empty_cell, num)) {
+            set_value(&sudoku[empty_cell.y][empty_cell.x], num);
+
+            number_of_solutions(sudoku, solutions);
+
+            set_value(&sudoku[empty_cell.y][empty_cell.x], 0);
+        }
+    }
+    return false;
 }

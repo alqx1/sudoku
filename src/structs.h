@@ -1,16 +1,12 @@
 #ifndef STRUCTS
 #define STRUCTS
 
+#include <stdint.h>
 #include <stdbool.h>
 
 struct pos {
     short x;
     short y;
-};
-
-struct cell {
-    int value;
-    bool changable;
 };
 
 #endif // STRUCTS
