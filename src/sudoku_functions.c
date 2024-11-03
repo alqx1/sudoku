@@ -1,5 +1,6 @@
 #include "sudoku_functions.h"
 #include "cell_functions.h"
+#include "pos.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -19,7 +20,6 @@ void read_file(uint16_t sudoku[9][9], char *path) {
     while ((read = getline(&line, &len, fin)) != -1 && count < 9) {
         if (read != 10) {
             printf("Error: One line contains too many characters\n");
-            free(fin);
             free(line);
             exit(5);
         }
@@ -27,7 +27,6 @@ void read_file(uint16_t sudoku[9][9], char *path) {
         for (size_t i = 0; i < 9; i++) {
             if (line[i] - '0' > 9 || line[i] - '0' < 0) {
                 printf("Error: Sudoku contains wrong numbers\n");
-                free(fin);
                 free(line);
                 exit(4);
             }
@@ -62,6 +61,7 @@ bool in_col(uint16_t sudoku[9][9], const int col, const int num) {
 }
 
 bool in_box(uint16_t sudoku[9][9], const struct pos position, const int num) {
+    // gets first indicies of box
     int box_x = position.x - (position.x % 3);
     int box_y = position.y - (position.y % 3);
 
@@ -94,6 +94,7 @@ bool is_safe(uint16_t sudoku[9][9], const struct pos position, const int num) {
         !in_box(sudoku, position, num));
 }
 
+// is recursive
 bool solve(uint16_t sudoku[9][9]) {
     struct pos empty_cell = {0, 0};
 
@@ -101,17 +102,26 @@ bool solve(uint16_t sudoku[9][9]) {
         return true;
     }
 
+    // try out every number for box
+    // if it doesnt work out, backtrack to previous state
+    // else continue solving
     for (int num = 1; num < 10; num++) {
         if (is_safe(sudoku, empty_cell, num)) {
+            // try out number
             set_value(&sudoku[empty_cell.y][empty_cell.x], num);
 
+            // if the number leads to a solved sudoku
+            // return true
             if (solve(sudoku)) {
                 return true;
             }
 
+            // else reset num
             set_value(&sudoku[empty_cell.y][empty_cell.x], 0);
         }
     }
+
+    // backtrack if no number works out
     return false;
 }
 
@@ -125,13 +135,14 @@ void clear(uint16_t sudoku[9][9]) {
     }
 }
 
-// generate sudoku
 void generate_sudoku(uint16_t sudoku[9][9], int removed_digits) {
     generate_diagonal_matrices(sudoku);
     solve(sudoku);
 
     uint16_t copy[9][9];
     copy_sudoku(sudoku, copy);
+    // remove_n_digits has an iteration cap
+    // so it doesnt get stuck
     while (!remove_n_digits(sudoku, removed_digits)) {
         copy_sudoku(copy, sudoku);
     }
@@ -156,9 +167,12 @@ void generate_diagonal_matrices(uint16_t sudoku[9][9]) {
 }
 
 void shuffle_nums(int nums[9]) {
+    int temp;
     for (ssize_t i = 8; i >= 0; i--) {
         short random = rand() % (i + 1);
-        swap(nums + random, nums + i);
+        temp = nums[random];
+        nums[random] = nums[i];
+        nums[i] = temp;
     }
 }
 
@@ -173,8 +187,9 @@ void add_nums_to_box(uint16_t sudoku[9][9], int box_x, int box_y, int nums[9]) {
 bool remove_n_digits(uint16_t sudoku[9][9], int n) {
     int temp;
     int solutions;
-    int iterations = 50000;
+    int iterations = 500;
     while (n != 0) {
+        // in case loop gets stuck somewhere
         if (iterations == 0)
             return false;
 
@@ -185,6 +200,8 @@ bool remove_n_digits(uint16_t sudoku[9][9], int n) {
             continue;
         }
 
+        // set value to 0 and check if theres still
+        // only one solution to the puzzle
         set_value(&sudoku[y][x], 0);
 
         solutions = 0;
@@ -198,13 +215,6 @@ bool remove_n_digits(uint16_t sudoku[9][9], int n) {
         n--;
     }
     return true;
-}
-
-// helper functions
-void swap(int *x, int *y) {
-    int temp = *x;
-    *x = *y;
-    *y = temp;
 }
 
 void print_sudoku(uint16_t sudoku[9][9]) {

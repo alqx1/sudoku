@@ -8,14 +8,16 @@
 #include <time.h>
 
 struct config config;
-struct pos selected;
+struct pos cursor;
 uint16_t sudoku[9][9];
 
 int main(int argc, char **argv) {
     srand(time(NULL));
     config = read_config("./config.txt");
+
     if (argc == 1) {
-        generate_sudoku(sudoku, 55);
+        // generates and stores into sudoku
+        generate_sudoku(sudoku, config.clear_cells);
     }
     else {
         printf("Error: Too many arguments\n");
@@ -23,18 +25,18 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-    selected.x = 4;
-    selected.y = 4;
-
-    print_sudoku(sudoku);
+    // default placement of cursor
+    cursor.x = 4;
+    cursor.y = 4;
 
     InitWindow(config.window_size, config.window_size, "Sudoku");
     SetTargetFPS(60);
+
     while (!WindowShouldClose()) {
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        run(config.window_size, &selected, sudoku);
+        run(config.window_size, &cursor, sudoku);
 
         EndDrawing();
     }
