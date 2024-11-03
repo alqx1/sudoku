@@ -13,6 +13,10 @@ struct config read_config(char *file_path) {
         config.window_size = atoi(buf);
     }
 
+    if (fscanf(fin, "%31s", buf) == 1) {
+        config.clear_cells = atoi(buf);
+    }
+
     fclose(fin);
     return config;
 }
