@@ -1,14 +1,15 @@
 #include "sudoku_scene.h"
-#include "sudoku_functions.h"
 #include "cell_functions.h"
-#include <stdio.h>
+#include "sudoku_functions.h"
 #include <math.h>
 #include <raylib.h>
 #include <stddef.h>
+#include <stdio.h>
 
 enum Mode mode = nums;
 
-void run_sudoku(short window_size, struct pos *selected, uint16_t sudoku[9][9]) {
+void run_sudoku(
+    short window_size, struct pos *selected, uint16_t sudoku[9][9]) {
     move_cursor(selected);
     place_number(*selected, sudoku);
     sudoku_input(sudoku);
@@ -46,13 +47,13 @@ void draw_selected_box(struct pos selected, short window_size) {
 
 void draw_numbers(uint16_t const sudoku[9][9], short window_size) {
     char buf[17];
+    bool notes[9];
     float padding = round(window_size / 9.f);
     for (size_t y = 0; y < 9; y++) {
         for (size_t x = 0; x < 9; x++) {
             if (get_value(sudoku[y][x]) == 0) {
                 struct pos cell = {x, y};
 
-                bool notes[9];
                 for (size_t i = 0; i < 9; i++) {
                     notes[i] = get_note(sudoku[y][x], i + 1);
                 }

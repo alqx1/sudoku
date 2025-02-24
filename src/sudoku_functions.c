@@ -155,15 +155,17 @@ void generate_diagonal_matrices(uint16_t sudoku[9][9]) {
         }
     }
 
+    bool random = rand() % 2;
+
     int nums[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
     shuffle_nums(nums);
-    add_nums_to_box(sudoku, 0, 0, nums);
+    add_nums_to_box(sudoku, random ? 0 : 6, 0, nums);
 
     shuffle_nums(nums);
     add_nums_to_box(sudoku, 3, 3, nums);
 
     shuffle_nums(nums);
-    add_nums_to_box(sudoku, 6, 6, nums);
+    add_nums_to_box(sudoku, random ? 6 : 0, 6, nums);
 }
 
 void shuffle_nums(int nums[9]) {
