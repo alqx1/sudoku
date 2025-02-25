@@ -4,8 +4,9 @@
 
 enum Scene scene = s_sudoku;
 
-void run(short window_size, struct pos *selected, uint16_t sudoku[9][9]) {
+// Zažene funkcijo za trenutno sceno
+void run(struct config config, struct pos *selected, uint16_t sudoku[9][9]) {
     if (scene == s_sudoku) {
-        run_sudoku(window_size, selected, sudoku);
+        run_sudoku(config, selected, sudoku);
     }
 }

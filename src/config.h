@@ -1,14 +1,18 @@
 #ifndef CONFIG
 #define CONFIG
 
+/*
+* Structura je namenjena shranjevanju podatkov iz config.txt
+*/
+
 #include <stdint.h>
 
 struct config {
-    uint16_t window_size;
-    uint8_t clear_cells;
+    uint16_t window_size; // širina in višina okna
+    uint8_t clear_cells; // koliko celic je praznih
 };
 
-// reads everything from config.txt to config struct
+// Prebere "config" datoteko in vrne strukturo config
 struct config read_config(char *file_path);
 
 #endif // CONFIG

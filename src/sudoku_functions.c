@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// solving sudokus
 void read_file(uint16_t sudoku[9][9], char *path) {
     FILE *fin = fopen(path, "r");
     if (fin == NULL) {
@@ -19,13 +18,13 @@ void read_file(uint16_t sudoku[9][9], char *path) {
     ssize_t read;
     while ((read = getline(&line, &len, fin)) != -1 && count < 9) {
         if (read != 10) {
-            printf("Error: One line contains too many characters\n");
+            printf("Error: One line contains too many/little characters\n");
             free(line);
             exit(5);
         }
 
         for (size_t i = 0; i < 9; i++) {
-            if (line[i] - '0' > 9 || line[i] - '0' < 0) {
+            if (line[i] > '9' || line[i] < '0') {
                 printf("Error: Sudoku contains wrong numbers\n");
                 free(line);
                 exit(4);
@@ -44,6 +43,7 @@ void read_file(uint16_t sudoku[9][9], char *path) {
 
 bool in_row(uint16_t sudoku[9][9], const int row, const int num) {
     for (size_t i = 0; i < 9; i++) {
+        // Če je številka že v vrstici, vrni true
         if (get_value(sudoku[row][i]) == num) {
             return true;
         }
@@ -53,6 +53,7 @@ bool in_row(uint16_t sudoku[9][9], const int row, const int num) {
 
 bool in_col(uint16_t sudoku[9][9], const int col, const int num) {
     for (size_t i = 0; i < 9; i++) {
+        // Če je številka že v stolpcu, vrni true
         if (get_value(sudoku[i][col]) == num) {
             return true;
         }
@@ -67,6 +68,7 @@ bool in_box(uint16_t sudoku[9][9], const struct pos position, const int num) {
 
     for (size_t i = 0; i < 3; i++) {
         for (size_t j = 0; j < 3; j++) {
+            // Če je številka že v bloku, vrni true
             if (get_value(sudoku[box_y + i][box_x + j]) == num) {
                 return true;
             }
@@ -78,6 +80,7 @@ bool in_box(uint16_t sudoku[9][9], const struct pos position, const int num) {
 bool find_empty_cell(uint16_t sudoku[9][9], struct pos *position) {
     for (size_t i = 0; i < 9; i++) {
         for (size_t j = 0; j < 9; j++) {
+            // Če je celica prazna, zapiši lokacijo v spremenljivo, vrni true
             if (get_value(sudoku[i][j]) == 0) {
                 position->y = i;
                 position->x = j;
@@ -89,60 +92,79 @@ bool find_empty_cell(uint16_t sudoku[9][9], struct pos *position) {
 }
 
 bool is_safe(uint16_t sudoku[9][9], const struct pos position, const int num) {
+    // Če je celica varna za vstavljanje neke števke, morajo vse pomožne
+    // funkcije vrniti false
     return (
         !in_row(sudoku, position.y, num) && !in_col(sudoku, position.x, num) &&
-        !in_box(sudoku, position, num));
+        !in_box(sudoku, position, num)
+    );
 }
 
-// is recursive
+// Rekurzivna funkcija
 bool solve(uint16_t sudoku[9][9]) {
+    // Struktura, ki bo shranjevala pozicijo prazne celice
     struct pos empty_cell = {0, 0};
 
+    // Če ni prazne celice, je sudoku rešen
     if (!find_empty_cell(sudoku, &empty_cell)) {
         return true;
     }
 
-    // try out every number for box
-    // if it doesnt work out, backtrack to previous state
-    // else continue solving
+    // Poskusi vsako številko za celico
+    // Če ne deluje, pojdi nazaj na prej-delujočo stanje
+    // drugače pa nadaljuj z reševanjem
     for (int num = 1; num < 10; num++) {
+        // Če je vrednost lahko vstavljena v celico
         if (is_safe(sudoku, empty_cell, num)) {
-            // try out number
+            // Poskusi vrednost
             set_value(&sudoku[empty_cell.y][empty_cell.x], num);
 
-            // if the number leads to a solved sudoku
-            // return true
+            // Če vrednost vodi k rešeni mreži, vrni true
             if (solve(sudoku)) {
                 return true;
             }
 
-            // else reset num
+            // Drugače resetiraj celico
             set_value(&sudoku[empty_cell.y][empty_cell.x], 0);
         }
     }
 
-    // backtrack if no number works out
+    // Če algoritem ne dela, pomeni da ni rešitve
     return false;
 }
 
 void clear(uint16_t sudoku[9][9]) {
+    // Vsako vrednost v spremljivi celici odstrani
     for (size_t i = 0; i < 9; i++) {
         for (size_t j = 0; j < 9; j++) {
             if (get_changable(sudoku[i][j])) {
-                set_value(&sudoku[i][j], 0);
+                sudoku[i][j] = 0;
+                set_changable(&sudoku[i][j], true);
             }
+        }
+    }
+}
+
+void clear_all(uint16_t sudoku[9][9]) {
+    // Vsako vrednost v celici odstrani
+    for (size_t i = 0; i < 9; i++) {
+        for (size_t j = 0; j < 9; j++) {
+            sudoku[i][j] = 0;
+            set_changable(&sudoku[i][j], true);
         }
     }
 }
 
 void generate_sudoku(uint16_t sudoku[9][9], int removed_digits) {
+    // Generira diagonalne bloke
     generate_diagonal_matrices(sudoku);
+    // Reši sudoku do konca
     solve(sudoku);
 
+    // Ustvarimo kopijo, če pri odstranjevanju pride do napake
     uint16_t copy[9][9];
     copy_sudoku(sudoku, copy);
-    // remove_n_digits has an iteration cap
-    // so it doesnt get stuck
+    // Če pri odstranjevanju pride do napake, kopiraj originalno tabelo nazaj
     while (!remove_n_digits(sudoku, removed_digits)) {
         copy_sudoku(copy, sudoku);
     }
@@ -189,23 +211,25 @@ void add_nums_to_box(uint16_t sudoku[9][9], int box_x, int box_y, int nums[9]) {
 bool remove_n_digits(uint16_t sudoku[9][9], int n) {
     int temp;
     int solutions;
-    int iterations = 500;
+    int iterations = 500; // Število največ itercij
     while (n != 0) {
-        // in case loop gets stuck somewhere
+        // Če se kdaj rekurzija zatakne
         if (iterations == 0)
             return false;
 
+        // Generira naključno pozicijo
         short x = rand() % 9;
         short y = rand() % 9;
 
-        if ((temp = get_value(sudoku[y][x])) == 0) {
+        while ((temp = get_value(sudoku[y][x])) == 0) {
+            x = rand() % 9;
+            y = rand() % 9;
             continue;
         }
 
-        // set value to 0 and check if theres still
-        // only one solution to the puzzle
         set_value(&sudoku[y][x], 0);
 
+        // Preveri število rešitev, če ni samo ena rešitev, poskusi drugo celico
         solutions = 0;
         number_of_solutions(sudoku, &solutions);
         if (solutions != 1) {
@@ -213,6 +237,7 @@ bool remove_n_digits(uint16_t sudoku[9][9], int n) {
             continue;
         }
 
+        // Spremeni v spremenljivo celico
         set_changable(&sudoku[y][x], true);
         n--;
     }
@@ -236,12 +261,15 @@ void copy_sudoku(uint16_t const original_sudoku[9][9], uint16_t copy[9][9]) {
     }
 }
 
-bool number_of_solutions(uint16_t sudoku[9][9], int *solutions) {
+// Funkcija podobna kakor "solve" funkcija
+void number_of_solutions(uint16_t sudoku[9][9], int *solutions) {
     struct pos empty_cell = {0, 0};
 
+    // Če ne najde prazne celice, je to ena od rešitev,
+    // vendar nadaljuje z reševanjem
     if (!find_empty_cell(sudoku, &empty_cell)) {
-        *(solutions) = *(solutions) + 1;
-        return false;
+        *(solutions) += 1;
+        return;
     }
 
     for (int num = 1; num < 10; num++) {
@@ -253,5 +281,4 @@ bool number_of_solutions(uint16_t sudoku[9][9], int *solutions) {
             set_value(&sudoku[empty_cell.y][empty_cell.x], 0);
         }
     }
-    return false;
 }
