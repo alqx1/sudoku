@@ -27,7 +27,6 @@ void constrain(uint16_t sudoku[9][9]) {
     uint16_t possible[9][9];
     init_possibilities(possible, sudoku);
 
-    printall(possible);
     printf("\n");
     bool has_changed;
     do {
@@ -39,7 +38,6 @@ void constrain(uint16_t sudoku[9][9]) {
 
         has_changed = unique_in_units(sudoku, possible) ? true : has_changed;
     } while (has_changed);
-    printall(possible);
 }
 
 void init_possibility(uint16_t *n) {
