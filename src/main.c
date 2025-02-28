@@ -1,8 +1,7 @@
 #include "config.h"
 #include "game.h"
-#include "sudoku_functions.h"
+#include "sudoku_functions/sudoku_functions.h"
 #include <raylib.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -16,16 +15,24 @@ int main(int argc, char **argv) {
     // Prebere konfiguracijo in jo shrani v spremenljivko
     config = read_config("./config.txt");
 
+
+    bool read = false;
     // Preverjanje argumentov
     if (argc == 1) {
-        // Generira sudoku mrežo in jo shrani v tabelo
-        generate_sudoku(sudoku, config.clear_cells);
+        read = read_file(sudoku, "sudoku.txt");
+    }
+    else if (argc == 2) {
+        read = read_file(sudoku, argv[1]);
     }
     // Če je preveč argumentov, izhod iz programa
     else {
         printf("Error: Too many arguments\n");
         printf("Usage: (executable)\n");
         exit(EXIT_FAILURE);
+    }
+
+    if (!read) {
+        generate_sudoku(sudoku, config.clear_cells);
     }
 
     // Postavi kazalec na sredino tabele

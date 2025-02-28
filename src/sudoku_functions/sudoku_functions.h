@@ -1,12 +1,12 @@
 #ifndef SUDOKU_FUNCTIONS
 #define SUDOKU_FUNCTIONS
 
-#include "pos.h"
+#include "../pos.h"
 #include <stdbool.h>
 #include <stdint.h>
 
 // Prebere iz datoteke in zapiše v tabelo
-void read_file(uint16_t sudoku[9][9], char *path);
+bool read_file(uint16_t sudoku[9][9], char *path);
 
 // Preveri, če je neka števka že v vrstici/stolpcu/bloku
 bool in_row(uint16_t sudoku[9][9], const int row, const int num);
@@ -23,7 +23,7 @@ bool solve(uint16_t sudoku[9][9]);
 // Sprazni vse spremenljive celice
 void clear(uint16_t sudoku[9][9]);
 // Sprazni vse celice
-void clear_all(uint16_t sudoku[9][9]);
+void fully_clear(uint16_t sudoku[9][9]);
 
 // Zgenerira sudoku poln sudoku, zbriše nekaj številk in zapiše v tabelo
 void generate_sudoku(uint16_t sudoku[9][9], int removed_digits);

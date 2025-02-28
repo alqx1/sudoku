@@ -1,10 +1,12 @@
 #include "sudoku_scene.h"
 #include "cell_functions.h"
-#include "sudoku_functions.h"
+#include "sudoku_functions/sudoku_functions.h"
+#include "constraints/constraints.h"
 #include <math.h>
 #include <raylib.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <time.h>
 
 enum Mode mode = nums;
 
@@ -181,8 +183,20 @@ void place_number(const struct pos selected, uint16_t sudoku[9][9]) {
 
 void sudoku_input(uint16_t sudoku[9][9], uint16_t clear_cells) {
     // Reši celotni sudoku, če je rešitev
-    if (IsKeyPressed(KEY_S))
-        solve(sudoku);
+    if (IsKeyPressed(KEY_S)) {
+        clock_t start = clock();
+
+        constrain(sudoku);
+        bool solved = solve(sudoku);
+
+        clock_t end = clock();
+        double time = (double)(end - start) / CLOCKS_PER_SEC;
+        printf("time: %.10f\n", time);
+
+        if (!solved) {
+            printf("waaa\n");
+        }
+    }
 
     // Sprazni vse nestalne celice
     if (IsKeyPressed(KEY_C))
