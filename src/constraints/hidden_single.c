@@ -1,9 +1,8 @@
 #include "../cell_functions.h"
 #include "../pos.h"
-#include "../sudoku_functions/sudoku_functions.h"
 #include "constraints.h"
 
-bool unique_in_units(uint16_t sudoku[9][9], uint16_t possible[9][9]) {
+bool check_hidden_singles(uint16_t sudoku[9][9], uint16_t possible[9][9]) {
     bool changed = false;
     unique_in_columns(sudoku, possible, &changed);
     unique_in_rows(sudoku, possible, &changed);
@@ -31,10 +30,11 @@ void unique_in_rows(
                 }
             }
 
-            if (num_occurance == 1 && is_safe(sudoku, last, num)) {
+            if (num_occurance == 1) {
                 set_value(&sudoku[last.y][last.x], num);
                 set_changable(&possible[last.y][last.x], true);
                 *changed = true;
+                rule_constraint(sudoku, possible, last);
             }
         }
     }
@@ -59,10 +59,11 @@ void unique_in_columns(
                 }
             }
 
-            if (num_occurance == 1 && is_safe(sudoku, last, num)) {
+            if (num_occurance == 1) {
                 set_value(&sudoku[last.y][last.x], num);
                 set_changable(&possible[last.y][last.x], true);
                 *changed = true;
+                rule_constraint(sudoku, possible, last);
             }
         }
     }
@@ -89,10 +90,11 @@ void unique_in_box(
             }
         }
 
-        if (num_occurance == 1 && is_safe(sudoku, last, num)) {
+        if (num_occurance == 1) {
             set_value(&sudoku[last.y][last.x], num);
             set_changable(&possible[last.y][last.x], true);
             *changed = true;
+            rule_constraints(sudoku, possible);
         }
     }
 }

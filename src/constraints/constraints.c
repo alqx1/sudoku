@@ -26,17 +26,19 @@ void printall(uint16_t possible[9][9]) {
 void constrain(uint16_t sudoku[9][9]) {
     uint16_t possible[9][9];
     init_possibilities(possible, sudoku);
+    rule_constraints(sudoku, possible);
 
     printf("\n");
     bool has_changed;
     do {
         has_changed = false;
 
-        rule_constraints(sudoku, possible);
         has_changed =
             check_naked_singles(sudoku, possible) ? true : has_changed;
+        rule_constraints(sudoku, possible);
 
-        has_changed = unique_in_units(sudoku, possible) ? true : has_changed;
+        has_changed = check_hidden_singles(sudoku, possible) ? true : has_changed;
+        rule_constraints(sudoku, possible);
     } while (has_changed);
 }
 

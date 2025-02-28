@@ -9,11 +9,17 @@ void rule_constraints(uint16_t sudoku[9][9], uint16_t possible[9][9]) {
                 continue;
             }
 
-            row_constraint(sudoku, possible, (struct pos){.y = i, .x = j});
-            column_constraint(sudoku, possible, (struct pos){.y = i, .x = j});
-            box_constraint(sudoku, possible, (struct pos){.y = i, .x = j});
+            rule_constraint(sudoku, possible, (struct pos){.y = i, .x = j});
         }
     }
+}
+
+void rule_constraint(
+    uint16_t sudoku[9][9], uint16_t possible[9][9], struct pos selected
+) {
+    row_constraint(sudoku, possible, selected);
+    column_constraint(sudoku, possible, selected);
+    box_constraint(sudoku, possible, selected);
 }
 
 void row_constraint(

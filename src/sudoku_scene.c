@@ -187,15 +187,12 @@ void sudoku_input(uint16_t sudoku[9][9], uint16_t clear_cells) {
         clock_t start = clock();
 
         constrain(sudoku);
-        bool solved = solve(sudoku);
+        solve(sudoku);
 
         clock_t end = clock();
         double time = (double)(end - start) / CLOCKS_PER_SEC;
+        // Izpise, koliko casa je resevanje potrebovalo
         printf("time: %.10f\n", time);
-
-        if (!solved) {
-            printf("waaa\n");
-        }
     }
 
     // Sprazni vse nestalne celice
