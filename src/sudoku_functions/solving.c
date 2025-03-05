@@ -1,6 +1,66 @@
-#include "sudoku_functions.h"
 #include "../cell_functions.h"
+#include "sudoku_functions.h"
 #include <stddef.h>
+
+// Preveri, če je neka števka že v vrstici/stolpcu/bloku
+bool in_row(uint16_t sudoku[9][9], const int row, const int num);
+bool in_col(uint16_t sudoku[9][9], const int col, const int num);
+bool in_box(uint16_t sudoku[9][9], const struct pos position, const int num);
+
+// Rekurzivna funkcija
+bool solve(uint16_t sudoku[9][9]) {
+    // Struktura, ki bo shranjevala pozicijo prazne celice
+    struct pos empty_cell = {0, 0};
+
+    // Če ni prazne celice, je sudoku rešen
+    if (!find_empty_cell(sudoku, &empty_cell)) {
+        return true;
+    }
+
+    // Poskusi vsako številko za celico
+    // Če ne deluje, pojdi nazaj na prej-delujočo stanje
+    // drugače pa nadaljuj z reševanjem
+    for (int num = 1; num < 10; num++) {
+        // Če je vrednost lahko vstavljena v celico
+        if (is_safe(sudoku, empty_cell, num)) {
+            // Poskusi vrednost
+            set_value(&sudoku[empty_cell.y][empty_cell.x], num);
+
+            // Če vrednost vodi k rešeni mreži, vrni true
+            if (solve(sudoku)) {
+                return true;
+            }
+
+            // Drugače resetiraj celico
+            set_value(&sudoku[empty_cell.y][empty_cell.x], 0);
+        }
+    }
+
+    // Če algoritem ne dela, pomeni da ni rešitve
+    return false;
+}
+
+// Funkcija podobna kakor "solve" funkcija
+void number_of_solutions(uint16_t sudoku[9][9], int *solutions) {
+    struct pos empty_cell = {0, 0};
+
+    // Če ne najde prazne celice, je to ena od rešitev,
+    // vendar nadaljuje z reševanjem
+    if (!find_empty_cell(sudoku, &empty_cell)) {
+        *(solutions) += 1;
+        return;
+    }
+
+    for (int num = 1; num < 10; num++) {
+        if (is_safe(sudoku, empty_cell, num)) {
+            set_value(&sudoku[empty_cell.y][empty_cell.x], num);
+
+            number_of_solutions(sudoku, solutions);
+
+            set_value(&sudoku[empty_cell.y][empty_cell.x], 0);
+        }
+    }
+}
 
 bool in_row(uint16_t sudoku[9][9], const int row, const int num) {
     for (size_t i = 0; i < 9; i++) {
@@ -59,37 +119,4 @@ bool is_safe(uint16_t sudoku[9][9], const struct pos position, const int num) {
         !in_row(sudoku, position.y, num) && !in_col(sudoku, position.x, num) &&
         !in_box(sudoku, position, num)
     );
-}
-
-// Rekurzivna funkcija
-bool solve(uint16_t sudoku[9][9]) {
-    // Struktura, ki bo shranjevala pozicijo prazne celice
-    struct pos empty_cell = {0, 0};
-
-    // Če ni prazne celice, je sudoku rešen
-    if (!find_empty_cell(sudoku, &empty_cell)) {
-        return true;
-    }
-
-    // Poskusi vsako številko za celico
-    // Če ne deluje, pojdi nazaj na prej-delujočo stanje
-    // drugače pa nadaljuj z reševanjem
-    for (int num = 1; num < 10; num++) {
-        // Če je vrednost lahko vstavljena v celico
-        if (is_safe(sudoku, empty_cell, num)) {
-            // Poskusi vrednost
-            set_value(&sudoku[empty_cell.y][empty_cell.x], num);
-
-            // Če vrednost vodi k rešeni mreži, vrni true
-            if (solve(sudoku)) {
-                return true;
-            }
-
-            // Drugače resetiraj celico
-            set_value(&sudoku[empty_cell.y][empty_cell.x], 0);
-        }
-    }
-
-    // Če algoritem ne dela, pomeni da ni rešitve
-    return false;
 }

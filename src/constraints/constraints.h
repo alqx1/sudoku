@@ -8,6 +8,11 @@ void init_possibilities(uint16_t possible[9][9], uint16_t sudoku[9][9]);
 
 void init_possibility(uint16_t *n);
 
+void add_new_value(
+    uint16_t sudoku[9][9], uint16_t possible[9][9], struct pos selected,
+    int value
+);
+
 void constrain(uint16_t sudoku[9][9]);
 
 bool check_naked_singles(uint16_t sudoku[9][9], uint16_t possible[9][9]);

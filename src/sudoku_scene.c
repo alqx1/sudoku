@@ -11,7 +11,7 @@
 enum Mode mode = nums;
 
 // Izvede vse pomembne funkcije
-void run_sudoku(
+void update_sudoku(
     struct config config, struct pos *selected, uint16_t sudoku[9][9]
 ) {
     move_cursor(selected);

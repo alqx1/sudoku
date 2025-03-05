@@ -2,14 +2,17 @@
 #include "../constraints/constraints.h"
 #include "sudoku_functions.h"
 #include <stddef.h>
-#include <stdio.h>
 #include <stdlib.h>
+
+void generate_boxes(uint16_t sudoku[9][9]);
+void shuffle_nums(int *nums, int n);
+void add_nums_to_box(uint16_t sudoku[9][9], int box_x, int box_y, int nums[9]);
+bool remove_n_digits(uint16_t sudoku[9][9], int n);
 
 void generate_sudoku(uint16_t sudoku[9][9], int removed_digits) {
     fully_clear(sudoku);
-    // Generira diagonalne bloke
-    generate_diagonal_matrices(sudoku);
 
+    generate_boxes(sudoku);
     // Reši sudoku do konca
     constrain(sudoku);
     solve(sudoku);
@@ -23,33 +26,28 @@ void generate_sudoku(uint16_t sudoku[9][9], int removed_digits) {
     }
 }
 
-void generate_diagonal_matrices(uint16_t sudoku[9][9]) {
-    for (size_t i = 0; i < 9; i++) {
-        for (size_t j = 0; j < 9; j++) {
-            sudoku[i][j] = 0;
-        }
-    }
-
-    bool random = rand() % 2;
+void generate_boxes(uint16_t sudoku[9][9]) {
+    int boxy_pos[3] = {0, 3, 6};
+    shuffle_nums(boxy_pos, 3);
 
     int nums[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-    shuffle_nums(nums);
-    add_nums_to_box(sudoku, random ? 0 : 6, 0, nums);
+    shuffle_nums(nums, 9);
+    add_nums_to_box(sudoku, 0, boxy_pos[0], nums);
 
-    shuffle_nums(nums);
-    add_nums_to_box(sudoku, 3, 3, nums);
+    shuffle_nums(nums, 9);
+    add_nums_to_box(sudoku, 3, boxy_pos[1], nums);
 
-    shuffle_nums(nums);
-    add_nums_to_box(sudoku, random ? 6 : 0, 6, nums);
+    shuffle_nums(nums, 9);
+    add_nums_to_box(sudoku, 6, boxy_pos[2], nums);
 }
 
-void shuffle_nums(int nums[9]) {
+void shuffle_nums(int *nums, int n) {
     int temp;
-    for (ssize_t i = 8; i >= 0; i--) {
+    for (ssize_t i = n - 1; i >= 0; i--) {
         short random = rand() % (i + 1);
-        temp = nums[random];
-        nums[random] = nums[i];
-        nums[i] = temp;
+        int temp = nums[i];
+        nums[i] = nums[random];
+        nums[random] = temp;
     }
 }
 
@@ -64,7 +62,7 @@ void add_nums_to_box(uint16_t sudoku[9][9], int box_x, int box_y, int nums[9]) {
 bool remove_n_digits(uint16_t sudoku[9][9], int n) {
     int temp;
     int solutions;
-    int iterations = 100; // Število največ itercij
+    int iterations = n * 2; // Število največ itercij
     while (n != 0) {
         // Če se kdaj rekurzija zatakne
         if (iterations == 0)
@@ -87,6 +85,7 @@ bool remove_n_digits(uint16_t sudoku[9][9], int n) {
         number_of_solutions(sudoku, &solutions);
         if (solutions != 1) {
             set_value(&sudoku[y][x], temp);
+            iterations--;
             continue;
         }
 
@@ -95,26 +94,4 @@ bool remove_n_digits(uint16_t sudoku[9][9], int n) {
         n--;
     }
     return true;
-}
-
-// Funkcija podobna kakor "solve" funkcija
-void number_of_solutions(uint16_t sudoku[9][9], int *solutions) {
-    struct pos empty_cell = {0, 0};
-
-    // Če ne najde prazne celice, je to ena od rešitev,
-    // vendar nadaljuje z reševanjem
-    if (!find_empty_cell(sudoku, &empty_cell)) {
-        *(solutions) += 1;
-        return;
-    }
-
-    for (int num = 1; num < 10; num++) {
-        if (is_safe(sudoku, empty_cell, num)) {
-            set_value(&sudoku[empty_cell.y][empty_cell.x], num);
-
-            number_of_solutions(sudoku, solutions);
-
-            set_value(&sudoku[empty_cell.y][empty_cell.x], 0);
-        }
-    }
 }

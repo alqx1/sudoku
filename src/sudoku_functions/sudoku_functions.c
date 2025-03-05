@@ -32,6 +32,7 @@ bool read_file(uint16_t sudoku[9][9], char *path) {
                 if (line[i * 9 + j] > '9' || line[i * 9 + j] < '0') {
                     fprintf(stderr, "Error: Sudoku contains wrong numbers\n");
                     free(line);
+                    fclose(fin);
                     return false;
                 }
                 sudoku[i][j] = 0;

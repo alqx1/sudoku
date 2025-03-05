@@ -5,7 +5,7 @@
 void rule_constraints(uint16_t sudoku[9][9], uint16_t possible[9][9]) {
     for (size_t i = 0; i < 9; i++) {
         for (size_t j = 0; j < 9; j++) {
-            if (get_value(sudoku[i][j]) == 0) {
+            if (!get_changable(possible[i][j])) {
                 continue;
             }
 

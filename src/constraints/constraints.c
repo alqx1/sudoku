@@ -14,6 +14,14 @@ void init_possibilities(uint16_t possible[9][9], uint16_t sudoku[9][9]) {
     }
 }
 
+void add_new_value(
+    uint16_t sudoku[9][9], uint16_t possible[9][9], struct pos selected,
+    int value
+) {
+    set_value(&sudoku[selected.y][selected.x], value);
+    set_changable(&possible[selected.y][selected.x], true);
+}
+
 void printall(uint16_t possible[9][9]) {
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 9; j++) {
@@ -28,7 +36,6 @@ void constrain(uint16_t sudoku[9][9]) {
     init_possibilities(possible, sudoku);
     rule_constraints(sudoku, possible);
 
-    printf("\n");
     bool has_changed;
     do {
         has_changed = false;
@@ -37,7 +44,8 @@ void constrain(uint16_t sudoku[9][9]) {
             check_naked_singles(sudoku, possible) ? true : has_changed;
         rule_constraints(sudoku, possible);
 
-        has_changed = check_hidden_singles(sudoku, possible) ? true : has_changed;
+        has_changed =
+            check_hidden_singles(sudoku, possible) ? true : has_changed;
         rule_constraints(sudoku, possible);
     } while (has_changed);
 }

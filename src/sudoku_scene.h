@@ -9,7 +9,7 @@
 enum Mode { nums, notes };
 
 // Izvaja delovanje scene (premikanje kazalca, vnašanje vrednosti ...)
-void run_sudoku(struct config config, struct pos *selected, uint16_t sudoku[9][9]);
+void update_sudoku(struct config config, struct pos *selected, uint16_t sudoku[9][9]);
 
 /* Funckije za risanje */
 // Nariše celotno mrežo
