@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 double time_backtrack(uint16_t sudoku[9][9]);
 double time_constraint(uint16_t sudoku[9][9]);
@@ -20,17 +21,14 @@ void time_sudokus_in_file(char *filename) {
     }
 
     int count = 0;
-    char *line = NULL;
-    size_t len = 0;
-    ssize_t read;
+    char line[256];
 
     double sum = 0;
-    while ((read = getline(&line, &len, fin)) != -1) {
-        if (read != 82) {
+    while (fgets(line, sizeof(line), fin) != NULL) {
+        if (strlen(line) != 82) {
             fprintf(
                 stderr, "Error: Line contains too many/little characters\n"
             );
-            free(line);
             fclose(fin);
             break;
         }
@@ -38,7 +36,6 @@ void time_sudokus_in_file(char *filename) {
         for (int i = 0; i < 81; i++) {
             if (line[i] > '9' || line[i] < '0') {
                 fprintf(stderr, "Error: Sudoku contains wrong numbers\n");
-                free(line);
                 fclose(fin);
                 break;
             }
@@ -56,7 +53,6 @@ void time_sudokus_in_file(char *filename) {
     printf("count: %i\n", count);
 
     fclose(fin);
-    free(line);
 }
 
 void line_into_sudoku(char *line, uint16_t sudoku[9][9]) {

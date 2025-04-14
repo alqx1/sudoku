@@ -11,13 +11,17 @@ if (NOT raylib_FOUND)
         GIT_SHALLOW ON
         EXCLUDE_FROM_ALL
         SYSTEM)
-    FetchContent_MakeAvailable(SDL2)
+    FetchContent_MakeAvailable(raylib)
 endif()
 
 set(libs ${libs} raylib glfw m)
 
 FILE(GLOB_RECURSE CSOURCES ./src/*.c)
-add_executable(sudoku ${CSOURCES})
+if(WIN32)
+	add_executable(sudoku WIN32 ${CSOURCES})
+else()
+	add_executable(sudoku WIN32 ${CSOURCES})
+endif()
 
 add_custom_command(
         TARGET sudoku POST_BUILD

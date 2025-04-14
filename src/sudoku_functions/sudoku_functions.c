@@ -2,6 +2,7 @@
 #include "../cell_functions.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 bool read_file(uint16_t sudoku[9][9], char *path) {
     fully_clear(sudoku);
@@ -13,16 +14,13 @@ bool read_file(uint16_t sudoku[9][9], char *path) {
     }
 
     int count = 0;
-    char *line = NULL;
-    size_t len = 0;
-    ssize_t read;
+    char line[256];
 
-    while ((read = getline(&line, &len, fin)) != -1 && count < 1) {
-        if (read != 82) {
+    while (fgets(line, sizeof(line), fin) != NULL && count < 1) {
+        if (strlen(line) != 82) {
             fprintf(
                 stderr, "Error: Line contains too many/little characters\n"
             );
-            free(line);
             fclose(fin);
             return false;
         }
@@ -31,7 +29,6 @@ bool read_file(uint16_t sudoku[9][9], char *path) {
             for (size_t j = 0; j < 9; j++) {
                 if (line[i * 9 + j] > '9' || line[i * 9 + j] < '0') {
                     fprintf(stderr, "Error: Sudoku contains wrong numbers\n");
-                    free(line);
                     fclose(fin);
                     return false;
                 }
@@ -44,7 +41,6 @@ bool read_file(uint16_t sudoku[9][9], char *path) {
     }
 
     fclose(fin);
-    free(line);
 
     return true;
 }
