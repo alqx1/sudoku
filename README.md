@@ -38,4 +38,4 @@ Konfiguracijo okna in programa lahko spreminjate v "config.txt", kjer prva štev
 |Generiranje nove mreže|R - reset|
 
 ## Izgled programa
-![]()
+![](./readme/program.png "Sudoku program")
